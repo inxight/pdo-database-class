@@ -42,14 +42,21 @@ $db = new PDODb(['type' => 'mysql',
 Simple example
 
 ```php
-$data = ["login" => "admin",
-         "firstName" => "John",
-         "lastName" => 'Doe',
-         'createdAt' => $db->now(),
-];
-$id = $db->insert_query('users', $data);
-if($id)
-    echo 'user was created. Id=' . $id;
+    unset($arr_query);
+    $arr_query = array(
+        "bt_type" => $_POST['bt_type'],
+        "bt_title" => $_POST['bt_title'],
+        "bt_link1" => $_POST['bt_link1'],
+        "bt_link2" => $_POST['bt_link2'],
+        "bt_target1" => $_POST['bt_target1'],
+        "bt_target2" => $_POST['bt_target2'],
+        "bt_rank" => $_POST['bt_rank'],
+        "bt_show" => $_POST['bt_show'],
+        "bt_wdate" => $DB->now(),
+    );
+
+    $DB->insert_query('banner_t', $arr_query);
+    $_last_idx = $DB->insert_id();
 ```
 
 입력시 날짜 기입방식이 변경되었습니다. now() > $db->now()
@@ -57,30 +64,41 @@ if($id)
 ### Update Query
 
 ```php
-$data = ['firstName' => 'Bobby',
-	    'lastName' => 'Tables',
-	    'editCount' => $db->inc(2),
-	    // editCount = editCount + 2;
-	    'active' => $db->not()
-	    // active = !active;
-];
-$db->where('id', 1);
-if ($db->update('users', $data)) {
-    echo $db->getRowCount() . ' records were updated';
-} else {
-    echo 'update failed: ' . $db->getLastError();
-}
+    unset($arr_query);
+    $arr_query = array(
+        "bt_type" => $_POST['bt_type'],
+        "bt_title" => $_POST['bt_title'],
+        "bt_link1" => $_POST['bt_link1'],
+        "bt_link2" => $_POST['bt_link2'],
+        "bt_target1" => $_POST['bt_target1'],
+        "bt_target2" => $_POST['bt_target2'],
+        "bt_rank" => $_POST['bt_rank'],
+        "bt_show" => $_POST['bt_show'],
+        "bt_wdate" => $DB->now(),
+    );
+
+    $DB->where('idx', $_POST['bt_idx']);
+
+    $DB->update_query('banner_t', $arr_query);
 ```
 
 ```php
-$users = $db->fetch_query('SELECT * FROM users WHERE id = admin');
+$query = "
+    select *, a1.idx as bt_idx from banner_t a1
+    where a1.idx = '".$_GET['bt_idx']."'
+";
+$row = $DB->fetch_query($query);
+```
+
 한개만
 
+```php
+unset($list);
+$sql_query = $query.$where_query." order by a1.idx desc limit ".$n_from.", ".$n_limit;
+$list = $DB->select_query($sql_query);
 
-$users = $db->select_query('SELECT * FROM users WHERE show = Y');
-foreach ($users as $user) {
-    print_r($user);
-}
+if ($list) {
+    foreach ($list as $row) {
 ```
 
 여러개 가져오기
