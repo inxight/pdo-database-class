@@ -12,6 +12,7 @@
  * @copyright Copyright (c) 2010-2016
  * @license   http://opensource.org/licenses/lgpl-3.0.html The GNU Lesser General Public License, version 3.0
  * @link      http://github.com/joshcam/PHP-MySQLi-Database-Class
+ * @link      https://github.com/inxight/pdo-database-class
  * @version   1.1.0
  */
 class PDODb
@@ -110,7 +111,7 @@ class PDODb
 
     /**
      * Rows per 1 page on paginate() method
-     * @var int 
+     * @var int
      */
     private $pageLimit = 10;
 
@@ -134,7 +135,7 @@ class PDODb
 
     /**
      * Query string
-     * @var string 
+     * @var string
      */
     private $query = '';
 
@@ -158,13 +159,13 @@ class PDODb
 
     /**
      * Number of affected rows
-     * @var int 
+     * @var int
      */
     private $rowCount = 0;
 
     /**
      * Transaction flag
-     * @var bool 
+     * @var bool
      */
     private $transaction = false;
 
@@ -250,7 +251,7 @@ class PDODb
         $this->query .= ' '.$operator;
 
         foreach ($conditions as $cond) {
-            list ($concat, $varName, $operator, $val) = $cond;
+            list($concat, $varName, $operator, $val) = $cond;
             $this->query .= " ".$concat." ".$varName;
 
             switch (strtolower($operator)) {
@@ -432,7 +433,9 @@ class PDODb
         $isInsert    = in_array($this->queryType, ['REPLACE', 'INSERT']);
         $dataColumns = array_keys($tableData);
         if ($isInsert) {
-            if (isset($dataColumns[0])) $this->query .= ' (`'.implode('`, `', $dataColumns).'`) ';
+            if (isset($dataColumns[0])) {
+                $this->query .= ' (`'.implode('`, `', $dataColumns).'`) ';
+            }
             $this->query .= ' VALUES (';
         } else {
             $this->query .= " SET ";
@@ -458,7 +461,7 @@ class PDODb
         }
 
         foreach ($this->join as $data) {
-            list ($joinType, $joinTable, $joinCondition) = $data;
+            list($joinType, $joinTable, $joinCondition) = $data;
 
             if (is_object($joinTable)) {
                 $joinStr = $this->buildPair("", $joinTable);
@@ -595,7 +598,7 @@ class PDODb
 
     /**
      * Return query result
-     * 
+     *
      * @param PDOStatement $stmt
      * @return array
      */
@@ -801,7 +804,7 @@ class PDODb
      *
      * @return int
      */
-    public function getLastInsertId()
+    public function insert_id()
     {
         return $this->pdo()->lastInsertId();
     }
@@ -858,7 +861,7 @@ class PDODb
 
     /**
      * Get table name with prefix
-     * 
+     *
      * @param string $tableName
      * @return string
      */
@@ -1058,12 +1061,12 @@ class PDODb
 
     /**
      * Perform insert query
-     * 
+     *
      * @param string $tableName
      * @param array $insertData
      * @return int
      */
-    public function insert($tableName, $insertData)
+    public function insert_query($tableName, $insertData)
     {
         return $this->buildInsert($tableName, $insertData, 'INSERT');
     }
@@ -1302,12 +1305,12 @@ class PDODb
 
     /**
      * Perform db query
-     * 
+     *
      * @param string $query
      * @param array $params
      * @return array
      */
-    public function rawQuery($query, $params = null)
+    public function select_query($query, $params = null)
     {
         $this->query = $query;
         if (is_array($params)) {
@@ -1328,14 +1331,14 @@ class PDODb
 
     /**
      * Perform db query and return only one row
-     * 
+     *
      * @param string $query
      * @param array $params
      * @return array
      */
-    public function rawQueryOne($query, $params = null)
+    public function fetch_query($query, $params = null)
     {
-        $result = $this->rawQuery($query, $params);
+        $result = $this->select_query($query, $params);
 
         if ($this->useGenerator) {
             return $result->current() ? $result->current() : false;
@@ -1355,13 +1358,13 @@ class PDODb
      */
     public function rawQueryValue($query, $params = null)
     {
-        $result = $this->rawQuery($query, $params);
+        $result = $this->select_query($query, $params);
 
         if ($this->useGenerator && !$result->current()) {
             return null;
-        } else if (!$this->useGenerator && !$result) {
+        } elseif (!$this->useGenerator && !$result) {
             return null;
-        }        
+        }
 
         if ($this->useGenerator) {
             $firstResult = $result->current();
@@ -1559,7 +1562,7 @@ class PDODb
      * @param int    $numRows   Limit on the number of rows that can be updated.
      * @return bool
      */
-    public function update($tableName, $tableData, $numRows = null)
+    public function update_query($tableName, $tableData, $numRows = null)
     {
         if ($this->isSubQuery) {
             return;
@@ -1619,3 +1622,12 @@ class PDODb
         return $this;
     }
 }
+
+$DB = new PDODb(['type' => 'mysql',
+                 'host' => 'localhost',
+                 'username' => 'jw',
+                 'password' => 'dmonster',
+                 'dbname'=> 'jw_db',
+                 'port' => 3306,
+                 'prefix' => '',
+                 'charset' => 'utf8']);
